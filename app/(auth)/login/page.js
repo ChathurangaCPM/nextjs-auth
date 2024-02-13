@@ -4,20 +4,30 @@
 import Link from 'next/link';
 import { redirect, useRouter } from 'next/navigation';
 import { useState } from 'react';
-
+import {Button} from '@/app/components/ui/button'
 import { signIn, useSession } from 'next-auth/react'
+import { ToastAction } from "@/app/components/ui/toast"
+import { useToast } from "@/app/components/ui/use-toast"
+
 
 const LoginPage = () => {
     const router = useRouter();
-    
+    const { toast } = useToast()
     const session = useSession();
+
     const [loginUser, setLoginUser] = useState({
         email: "",
         password: "",
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState({
+        status: '',
+        message: '',
+        isOpen: false
+    });
 
     if (session.status === "authenticated") {
-        redirect('/');
+        redirect('/wall');
     }
 
     const handlerInputChange = (e) => {
@@ -29,21 +39,40 @@ const LoginPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
 
         try {
-            signIn("credentials", {
+            const getSignIn = await signIn("credentials", {
                 email: loginUser.email,
                 password: loginUser.password,
                 redirect: false,
             });
 
-            router.replace('/');
-            router.refresh();
+            setIsLoading(false);
+
+            console.log('getSignIn ===', getSignIn);
+
+            if (getSignIn.status === 200){
+                setErrorMessage({
+                    status: 'success',
+                    message: 'Login was successfully',
+                    isOpen: true
+                })
+                // router.push('/dashboard');
+                // router.refresh();
+            } else{
+
+                setErrorMessage({
+                    status: 'fail',
+                    message: 'Please Check the creadentiols',
+                    isOpen: true
+                })
+            }
+            
         } catch (error) {
             console.log('error', error);
+            setIsLoading(false);
         }
-
-
     }
 
 
@@ -105,12 +134,17 @@ const LoginPage = () => {
                             </div>
                         </div>
 
+                        {errorMessage.isOpen && <div className={`rounded-lg p-[5px] ${errorMessage.status === "fail" ? "bg-red-500" : 'bg-green-500'}`}>
+                            <span className='text-sm text-white'>{errorMessage.message}</span>
+                        </div>}
+
                         <div>
                             <button
+                                disabled={isLoading}
                                 type="submit"
                                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                             >
-                                Sign in
+                                {isLoading ? "Please wait" : 'Sign in'}
                             </button>
                         </div>
                     </form>

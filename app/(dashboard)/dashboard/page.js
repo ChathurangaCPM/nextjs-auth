@@ -1,21 +1,33 @@
+"use client"
 import React from 'react';
-import Image from 'next/image';
+import { signOut, useSession } from 'next-auth/react';
+import { redirect, useRouter } from 'next/navigation';
+
+import LeftSideBar from '@/app/components/custom/leftSideBar';
+import CreatePostWrapper from '@/app/components/custom/wall/createPostWrapper';
+import SinglePost from '@/app/components/custom/post/singlePost';
 
 export default function Dashboard() {
+  const session = useSession();
+  const router = useRouter();
+  if (session.status !== "authenticated"){
+    redirect('/login');
+  }
+
   return (
-    <div className='w-full pt-2'>
-      <div className='p-2 left-2/4 translate-y-2/4 border-2 rounded-3xl flex flex-row justify-between max-w-screen-xl mx-auto'>
-        <div className='flex gap-2'>
-          <Image
-            source={{
-              uri:"https://wallpaperaccess.com/full/317501.jpg"
-            }}
-            alt="Alternate Text"
-            size="xs"
-          />
-          Search
+    <div className='w-full'>
+      <LeftSideBar />
+      <div className='pl-[320px]'>
+        <div className='flex gap-[30px]'>
+          <div className='flex-grow pt-5'>
+            <CreatePostWrapper/>
+            
+            <SinglePost />
+            
+          </div>
+
+          <div className='flex-none w-[300px] bg-slate-50 p-32'>Sidebar</div>
         </div>
-        <div>Right</div>
       </div>
     </div>
   )
